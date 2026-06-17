@@ -5,9 +5,14 @@ class TaskController{
         try{
             const {title, description}=req.body;
 
-            if(!title){
-                return res.status(400).json({error:'Заголовок задачи обязателен'});
+  
+            if (!title || title.trim() === '') {
+                return res.status(400).json({ 
+                    error: 'Заголовок задачи не может быть пустым' 
+                });
             }
+
+
 
             const newTask=await db.query('INSERT INTO tasks (title, description) VALUES ($1,$2) RETURNING *',[title,description]);
 
@@ -33,21 +38,32 @@ class TaskController{
         }
     }
 
-    async updateStatusTask(req,res){
+    async updateTask(req,res){
         try{
             const {id}= req.params;
-            const {status}=req.body;
+            const {title, description,status}=req.body;
 
-            const allowedStatuses=['new','in_progress', 'done'];
-            if(!allowedStatuses.includes(status)){
-                return res.status(400).json({error: 'Недопустимый статус задачи'});
-
+            if (status) {
+                const allowedStatuses = ['new', 'in_progress', 'done'];
+                if (!allowedStatuses.includes(status)) {
+                    return res.status(400).json({ error: 'Недопустимый статус задачи' });
+                }   
             }
 
-            const updatedTask=await db.query('UPDATE tasks SET status = $1 WHERE id = $2 REATURNING *',[status,id]);
+
+            if (!title || title.trim() === '') {
+                return res.status(400).json({ 
+                    error: 'Заголовок задачи не может быть пустым' 
+                });
+            }
+
+
+
+
+            const updatedTask=await db.query('UPDATE tasks SET title=$1, description=$2, status=$3 WHERE id = $4 RETURNING *',[title, description, status,id]);
             
             if(updatedTask.rows.length === 0){
-                return res.status(404).json({error:'Задача с таким id не ннайдена'});
+                return res.status(404).json({error:'Задача с таким id не найдена'});
 
             }
 
