@@ -38,41 +38,54 @@ class TaskController{
         }
     }
 
-    async updateTask(req,res){
-        try{
-            const {id}= req.params;
-            const {title, description,status}=req.body;
+    async updateTask(req, res) {
+        try {
+            const { id } = req.params;
+            const { title, description, status } = req.body;
 
             if (status) {
                 const allowedStatuses = ['new', 'in_progress', 'done'];
                 if (!allowedStatuses.includes(status)) {
                     return res.status(400).json({ error: 'Недопустимый статус задачи' });
-                }   
+                }
             }
 
 
-            if (!title || title.trim() === '') {
+            if (title !== undefined && title.trim() === '') {
                 return res.status(400).json({ 
                     error: 'Заголовок задачи не может быть пустым' 
                 });
             }
 
 
+            const queryText = `
+                UPDATE tasks 
+                SET 
+                    title = COALESCE($1, title), 
+                    description = COALESCE($2, description), 
+                    status = COALESCE($3, status) 
+                WHERE id = $4 
+                RETURNING *
+            `;
 
+            const values = [
+                title !== undefined ? title : null,
+                description !== undefined ? description : null,
+                status !== undefined ? status : null,
+                id
+            ];
 
-            const updatedTask=await db.query('UPDATE tasks SET title=$1, description=$2, status=$3 WHERE id = $4 RETURNING *',[title, description, status,id]);
+            const updatedTask = await db.query(queryText, values);
             
-            if(updatedTask.rows.length === 0){
-                return res.status(404).json({error:'Задача с таким id не найдена'});
-
+            if (updatedTask.rows.length === 0) {
+                return res.status(404).json({ error: 'Задача с таким id не найдена' });
             }
 
             res.json(updatedTask.rows[0]);
         }
-        catch(err){
-            console.error(err.message)
-            res.status(500).json({error:'Ошибка сервера при обновление статуса'});
-
+        catch (err) {
+            console.error(err.message);
+            res.status(500).json({ error: 'Ошибка сервера при обновлении задачи' });
         }
     }
     
@@ -83,7 +96,7 @@ class TaskController{
             const deletedTask= await db.query('DELETE FROM tasks WHERE id=$1 RETURNING*',[id]);
 
             if(deletedTask.rows.length===0){
-                return res.status(404).jspn({error:'Задача с таким id не найдена'})
+                return res.status(404).json({error:'Задача с таким id не найдена'})
             }
 
             res.json({message:'Задача успешно удалена', task:deletedTask.rows[0]});
