@@ -1,6 +1,8 @@
 require('dotenv').config()
 const Pool=require('pg').Pool
 
+const requiredEnvVars = ['DB_USER', 'DB_PASSWORD', 'DB_HOST', 'DB_PORT', 'DB_DATABASE'];
+
 for (const envVar of requiredEnvVars) {
     if (!process.env[envVar]) {
         throw new Error(`Отсутствует переменная окружения: ${envVar}`);
