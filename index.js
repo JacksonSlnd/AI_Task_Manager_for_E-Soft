@@ -1,8 +1,10 @@
 require('dotenv').config()
 const express=require('express')
+const cors = require('cors');
 const taskRouter=require('./routers/tasks.routers')
 const app=express()
 
+app.use(cors());
 app.use(express.json());
 
 app.set('port', process.env.PORT || 3452)
