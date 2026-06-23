@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: task_manager_db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+      TZ: Asia/Yekaterinburg  #Добавил чтоб менялся часовой пояс, но не сработало
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    container_name: task_manager_backend
+    ports:
+      - "3542:3542"
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE}
+      TZ: Asia/Yekaterinburg       
+    depends_on:
+      - db
+
+  frontend:
+    build: ./reactApp
+    container_name: task_manager_frontend
+    ports:
+      - "5173:5173"
+    stdin_open: true
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

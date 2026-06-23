@@ -4,7 +4,7 @@ CREATE TABLE tasks(
     description TEXT,
     status VARCHAR(20) DEFAULT 'new' CHECK (status IN ('new', 'in_progress', 'done')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)
+);
 
 ALTER TABLE tasks ADD COLUMN task_date DATE NOT NULL;
 
